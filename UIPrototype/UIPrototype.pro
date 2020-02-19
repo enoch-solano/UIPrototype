@@ -25,10 +25,15 @@ DEFINES += QT_DEPRECATED_WARNINGS
 
 SOURCES += \
         main.cpp \
-        mainwindow.cpp
+        mainwindow.cpp \
+    synthstate.cpp \
+    controlsfilter.cpp
 
 HEADERS += \
-        mainwindow.h
+        mainwindow.h \
+    synthstate.h \
+    single_include/nlohmann/json.hpp \
+    controlsfilter.h
 
 FORMS += \
         mainwindow.ui
