@@ -2,8 +2,7 @@
 #define CONTROLSFILTER_H
 
 
-class ControlsFilter
-{
+class ControlsFilter {
 public:
     ControlsFilter();
 };

@@ -22,18 +22,21 @@ DEFINES += QT_DEPRECATED_WARNINGS
 # You can also select to disable deprecated APIs only up to a certain version of Qt.
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
+CONFIG-=depend_includepath
 
 SOURCES += \
         main.cpp \
         mainwindow.cpp \
     synthstate.cpp \
-    controlsfilter.cpp
+    controlsfilter.cpp \
+    qtcontrolsfilter.cpp
 
 HEADERS += \
         mainwindow.h \
     synthstate.h \
     single_include/nlohmann/json.hpp \
-    controlsfilter.h
+    controlsfilter.h \
+    qtcontrolsfilter.h
 
 FORMS += \
         mainwindow.ui

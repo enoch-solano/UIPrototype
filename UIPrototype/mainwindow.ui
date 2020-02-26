@@ -32,14 +32,14 @@
             <property name="font">
              <font>
               <family>Courier New</family>
-              <pointsize>18</pointsize>
+              <pointsize>6</pointsize>
              </font>
             </property>
             <property name="text">
              <string>Going to display info here.</string>
             </property>
             <property name="alignment">
-             <set>Qt::AlignCenter</set>
+             <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
             </property>
            </widget>
           </item>
@@ -187,6 +187,9 @@
             </property>
             <property name="maximum">
              <number>100</number>
+            </property>
+            <property name="wrapping">
+             <bool>true</bool>
             </property>
            </widget>
           </item>
