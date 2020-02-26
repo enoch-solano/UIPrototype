@@ -83,11 +83,24 @@ private:
 
     JSON *getStateOfBoard();
 
+    int section_clicked;
+
 
 public slots:
     void slot_handle_button_press();
     void slot_handle_knob_turn(int value);
     void slot_handle_timer();
+
+    void slot_v0_pressed();
+    void slot_v1_pressed();
+    void slot_v2_pressed();
+    void slot_v3_pressed();
+
+    void slot_adsr_pressed();
+    void slot_filter_pressed();
+    void slot_lfo_pressed();
+    void slot_fm_pressed();
+    void slot_vol_pressed();
 };
 
 #endif // MAINWINDOW_H

@@ -3,7 +3,7 @@
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow), timer(new QTimer(this)),
-    m_voice_colors { "red", "blue", "green", "grey" }
+    m_voice_colors { "rgb(255,0,0)", "rgb(0,0,255)", "rgb(0,255,0)", "rgb(255,255,0)" }
 {
     ui->setupUi(this);
 
@@ -121,19 +121,170 @@ MainWindow::MainWindow(QWidget *parent) :
 
     for (QDial* knob : m_knobs) {
         knob->setWrapping(true);
+        int size = 120;
+        knob->setMinimumHeight(size);
+        knob->setMinimumWidth(size);
     }
+
+
+    for (int i = 0; i < 4; i++) {
+        QPushButton* mute_button = m_mute_buttons[i];
+        QPushButton* voice_sel_button = m_voice_sel_buttons[i];
+        QPushButton* fine_button = m_voice_fine_buttons[i];
+
+        QDial* level_knob = m_voice_level_knobs[i];
+        QDial* fine_knob = m_voice_fine_knobs[i];
+
+        if (i == 0) {
+            connect(mute_button, SIGNAL(pressed()), this, SLOT(slot_v0_pressed()));
+            connect(voice_sel_button, SIGNAL(pressed()), this, SLOT(slot_v0_pressed()));
+            connect(fine_button, SIGNAL(pressed()), this, SLOT(slot_v0_pressed()));
+
+            connect(level_knob, SIGNAL(valueChanged(int)), this, SLOT(slot_v0_pressed()));
+            connect(fine_knob, SIGNAL(valueChanged(int)), this, SLOT(slot_v0_pressed()));
+        } else if (i == 1) {
+            connect(mute_button, SIGNAL(pressed()), this, SLOT(slot_v1_pressed()));
+            connect(voice_sel_button, SIGNAL(pressed()), this, SLOT(slot_v1_pressed()));
+            connect(fine_button, SIGNAL(pressed()), this, SLOT(slot_v1_pressed()));
+
+            connect(level_knob, SIGNAL(valueChanged(int)), this, SLOT(slot_v1_pressed()));
+            connect(fine_knob, SIGNAL(valueChanged(int)), this, SLOT(slot_v1_pressed()));
+        } else if (i == 2) {
+            connect(mute_button, SIGNAL(pressed()), this, SLOT(slot_v2_pressed()));
+            connect(voice_sel_button, SIGNAL(pressed()), this, SLOT(slot_v2_pressed()));
+            connect(fine_button, SIGNAL(pressed()), this, SLOT(slot_v2_pressed()));
+
+            connect(level_knob, SIGNAL(valueChanged(int)), this, SLOT(slot_v2_pressed()));
+            connect(fine_knob, SIGNAL(valueChanged(int)), this, SLOT(slot_v2_pressed()));
+        } else if (i == 3) {
+            connect(mute_button, SIGNAL(pressed()), this, SLOT(slot_v3_pressed()));
+            connect(voice_sel_button, SIGNAL(pressed()), this, SLOT(slot_v3_pressed()));
+            connect(fine_button, SIGNAL(pressed()), this, SLOT(slot_v3_pressed()));
+
+            connect(level_knob, SIGNAL(valueChanged(int)), this, SLOT(slot_v3_pressed()));
+            connect(fine_knob, SIGNAL(valueChanged(int)), this, SLOT(slot_v3_pressed()));
+        }
+    }
+
+
+    for (QPushButton* button : m_adsr_buttons) {
+        connect(button, SIGNAL(pressed()), this, SLOT(slot_adsr_pressed()));
+    }
+    for (QDial* dial : m_adsr_knobs) {
+        connect(dial, SIGNAL(valueChanged(int)), this, SLOT(slot_adsr_pressed()));
+    }
+
+    for (QPushButton* button : m_lfo_buttons) {
+        connect(button, SIGNAL(pressed()), this, SLOT(slot_lfo_pressed()));
+    }
+    for (QDial* dial : m_lfo_knobs) {
+        connect(dial, SIGNAL(valueChanged(int)), this, SLOT(slot_lfo_pressed()));
+    }
+
+    for (QPushButton* button : m_filter_buttons) {
+        connect(button, SIGNAL(pressed()), this, SLOT(slot_filter_pressed()));
+    }
+    for (QDial* dial : m_filter_knobs) {
+        connect(dial, SIGNAL(valueChanged(int)), this, SLOT(slot_filter_pressed()));
+    }
+
+    for (QPushButton* button : m_fm_buttons) {
+        connect(button, SIGNAL(pressed()), this, SLOT(slot_fm_pressed()));
+    }
+    for (QDial* dial : m_fm_knobs) {
+        connect(dial, SIGNAL(valueChanged(int)), this, SLOT(slot_fm_pressed()));
+    }
+
+    for (QPushButton* button : m_vol_buttons) {
+        connect(button, SIGNAL(pressed()), this, SLOT(slot_vol_pressed()));
+    }
+    for (QDial* dial : m_vol_knobs) {
+        connect(dial, SIGNAL(valueChanged(int)), this, SLOT(slot_vol_pressed()));
+    }
+
+
 
     connect(timer, &QTimer::timeout, this, QOverload<>::of(&MainWindow::slot_handle_timer));
     timer->start(50);
 }
 
 
+
 void MainWindow::slot_handle_timer() {
     JSON *packet = getStateOfBoard();
-    QString data = QString::fromStdString((*packet).dump(4));
+
+    QString data;
+    switch(section_clicked) {
+    case 0:
+        data = QString::fromStdString((*packet)["voices"]["voice0"].dump(4));
+        break;
+    case 1:
+        data = QString::fromStdString((*packet)["voices"]["voice1"].dump(4));
+        break;
+    case 2:
+        data = QString::fromStdString((*packet)["voices"]["voice2"].dump(4));
+        break;
+    case 3:
+        data = QString::fromStdString((*packet)["voices"]["voice3"].dump(4));
+        break;
+    case 4:
+        data = QString::fromStdString((*packet)["adsr"].dump(4));
+        break;
+    case 5:
+        data = QString::fromStdString((*packet)["lfo"].dump(4));
+        break;
+    case 6:
+        data = QString::fromStdString((*packet)["filter"].dump(4));
+        break;
+    case 7:
+        data = QString::fromStdString((*packet)["fm"].dump(4));
+        break;
+    case 8:
+        data = QString::fromStdString((*packet)["vol"].dump(4));
+        break;
+    default:
+        data = QString();
+    }
+
     updateDisplay(data);
 
     delete packet;
+}
+
+void MainWindow::slot_v0_pressed() {
+    section_clicked = 0;
+}
+
+void MainWindow::slot_v1_pressed() {
+    section_clicked = 1;
+}
+
+void MainWindow::slot_v2_pressed() {
+    section_clicked = 2;
+}
+
+void MainWindow::slot_v3_pressed() {
+    section_clicked = 3;
+}
+
+void MainWindow::slot_adsr_pressed() {
+    section_clicked = 4;
+}
+
+void MainWindow::slot_lfo_pressed() {
+    section_clicked = 5;
+}
+
+void MainWindow::slot_filter_pressed() {
+    section_clicked = 6;
+}
+
+void MainWindow::slot_fm_pressed() {
+    section_clicked = 7;
+}
+
+void MainWindow::slot_vol_pressed() {
+    section_clicked = 8;
 }
 
 
