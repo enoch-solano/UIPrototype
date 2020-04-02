@@ -1,11 +1,49 @@
 #include "mainwindow.h"
 
+void MainWindow::connectToServer(QString server) {
+    socket->abort();
+    socket->connectToServer(server);
+    socket->open(QIODevice::ReadWrite);
+}
+
+void MainWindow::disconnectFromServer() {
+    socket->disconnectFromServer();
+}
+int my_counter = 0;
+void MainWindow::readFromSocket()
+{
+    updateDisplay("message received!");
+    QByteArray data = socket->readAll();
+    QString strData = QString::fromStdString(data.toStdString());
+    updateDisplay("message was: " + strData);
+    
+    writeToSocket(QString::number(my_counter++) + "thanks server!");
+}
+
+void MainWindow::writeToSocket(QString message) {
+    QByteArray messageData;
+    QDataStream dataWriter(&messageData, QIODevice::WriteOnly);
+    dataWriter << message.toStdString().c_str();
+    std::cout << "writing to socket" << std::endl;
+    // send data
+    std::cout << "num bytes written: " << socket->write(messageData) << std::endl;
+    std::cout << "bytes were written? " << (socket->waitForBytesWritten() == 0 ? "no" : "yes") << std::endl;
+}
+
+
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow), timer(new QTimer(this)),
-    m_voice_colors { "rgb(255,0,0)", "rgb(0,0,255)", "rgb(0,255,0)", "rgb(255,255,0)" }
+    m_voice_colors { "rgb(255,0,0)", "rgb(0,0,255)", "rgb(0,255,0)", "rgb(255,255,0)" },
+    socket(new QLocalSocket(this))
 {
     ui->setupUi(this);
+
+    //----- socket setup -----//
+    connectToServer("/tmp/socket_for_synth_eng");
+
+    connect(socket, &QLocalSocket::readyRead, this, &MainWindow::readFromSocket);
+    //------------------------//
 
     m_voice_display_LEDs = { ui->display_V1,
                              ui->display_V2,
@@ -203,15 +241,15 @@ MainWindow::MainWindow(QWidget *parent) :
     }
 
 
-
     connect(timer, &QTimer::timeout, this, QOverload<>::of(&MainWindow::slot_handle_timer));
     timer->start(50);
 }
 
-
-
 void MainWindow::slot_handle_timer() {
+    QElapsedTimer timer;
+    timer.start();
     JSON *packet = getStateOfBoard();
+    // std::cout << "Elapsed time: " << timer.elapsed() << std::endl;
 
     QString data;
     switch(section_clicked) {
@@ -246,47 +284,10 @@ void MainWindow::slot_handle_timer() {
         data = QString();
     }
 
-    updateDisplay(data);
+    // updateDisplay(data);
 
     delete packet;
 }
-
-void MainWindow::slot_v0_pressed() {
-    section_clicked = 0;
-}
-
-void MainWindow::slot_v1_pressed() {
-    section_clicked = 1;
-}
-
-void MainWindow::slot_v2_pressed() {
-    section_clicked = 2;
-}
-
-void MainWindow::slot_v3_pressed() {
-    section_clicked = 3;
-}
-
-void MainWindow::slot_adsr_pressed() {
-    section_clicked = 4;
-}
-
-void MainWindow::slot_lfo_pressed() {
-    section_clicked = 5;
-}
-
-void MainWindow::slot_filter_pressed() {
-    section_clicked = 6;
-}
-
-void MainWindow::slot_fm_pressed() {
-    section_clicked = 7;
-}
-
-void MainWindow::slot_vol_pressed() {
-    section_clicked = 8;
-}
-
 
 void MainWindow::slot_handle_button_press() {
     // retrieve the button you have clicked
@@ -295,17 +296,16 @@ void MainWindow::slot_handle_button_press() {
     // update the button state
     for (int i = 0; i < m_buttons.size(); i++) {
         if (m_buttons[i] == button_sender) {
-            m_button_states[i] = 10;
+            m_button_states[i] = 15;
         }
     }
 }
 
 void MainWindow::slot_handle_knob_turn(int value) {
-    updateDisplay(QString::number(value));
+    // updateDisplay(QString::number(value));
 }
 
 void MainWindow::updateDisplay(QString harmonics) {
-    // 45 characters per line
     ui->infoLabel->setText(harmonics);
 }
 

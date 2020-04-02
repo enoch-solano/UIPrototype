@@ -6,6 +6,11 @@
 #include <QMainWindow>
 #include <iostream>
 #include <QTimer>
+#include <QElapsedTimer>
+//-- client-side includes --//
+#include <QDataStream>
+#include <QLocalSocket>
+//--------------------------//
 
 #define VOICE_1 0
 #define VOICE_2 1
@@ -85,22 +90,33 @@ private:
 
     int section_clicked;
 
+//---- client side socket stuff ----//
+    QLocalSocket *socket;
+
+    void connectToServer(QString server);
+    void disconnectFromServer();
+    void writeToSocket(QString message);
+
+public slots:
+    void readFromSocket();
+
+//----------------------------------//
 
 public slots:
     void slot_handle_button_press();
     void slot_handle_knob_turn(int value);
     void slot_handle_timer();
 
-    void slot_v0_pressed();
-    void slot_v1_pressed();
-    void slot_v2_pressed();
-    void slot_v3_pressed();
+    void slot_v0_pressed() { section_clicked = 0; }
+    void slot_v1_pressed() { section_clicked = 1; }
+    void slot_v2_pressed() { section_clicked = 2; }
+    void slot_v3_pressed() { section_clicked = 3; }
 
-    void slot_adsr_pressed();
-    void slot_filter_pressed();
-    void slot_lfo_pressed();
-    void slot_fm_pressed();
-    void slot_vol_pressed();
+    void slot_adsr_pressed()   { section_clicked = 4; }
+    void slot_lfo_pressed()    { section_clicked = 5; }
+    void slot_filter_pressed() { section_clicked = 6; }
+    void slot_fm_pressed()     { section_clicked = 7; }
+    void slot_vol_pressed()    { section_clicked = 8; }
 };
 
 #endif // MAINWINDOW_H
