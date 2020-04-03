@@ -9,18 +9,18 @@ void MainWindow::connectToServer(QString server) {
 void MainWindow::disconnectFromServer() {
     socket->disconnectFromServer();
 }
-int my_counter = 0;
+
 void MainWindow::readFromSocket()
 {
-    updateDisplay("message received!");
     QByteArray data = socket->readAll();
     QString strData = QString::fromStdString(data.toStdString());
     updateDisplay("message was: " + strData);
-    
-    writeToSocket(QString::number(my_counter++) + "thanks server!");
 }
 
 void MainWindow::writeToSocket(QString message) {
+    // formats message properly to send message length
+    message = QString::number(message.length()) + "_" + message;
+
     QByteArray messageData;
     QDataStream dataWriter(&messageData, QIODevice::WriteOnly);
     dataWriter << message.toStdString().c_str();
@@ -240,16 +240,18 @@ MainWindow::MainWindow(QWidget *parent) :
         connect(dial, SIGNAL(valueChanged(int)), this, SLOT(slot_vol_pressed()));
     }
 
-
     connect(timer, &QTimer::timeout, this, QOverload<>::of(&MainWindow::slot_handle_timer));
     timer->start(50);
 }
 
-void MainWindow::slot_handle_timer() {
-    QElapsedTimer timer;
-    timer.start();
+// qint64 m_totalTime = 0;
+// qint64 m_counter = 0;
+// qint64 maxTime = 0;
+
+
+void MainWindow::slot_handle_timer() {    
     JSON *packet = getStateOfBoard();
-    // std::cout << "Elapsed time: " << timer.elapsed() << std::endl;
+
 
     QString data;
     switch(section_clicked) {
@@ -284,7 +286,21 @@ void MainWindow::slot_handle_timer() {
         data = QString();
     }
 
+    // display what is touched
     // updateDisplay(data);
+
+    // QElapsedTimer timer;
+    // timer.start();
+    writeToSocket(QString::fromStdString(packet->dump()));
+    // qint64 els = timer.nsecsElapsed();
+    // std::cout << "nano seconds elapsed time: " << els << std::endl;
+    // std::cout << "milliseconds elapsed time: " << float(els) * float(1e-6) << std::endl;
+
+    // m_totalTime += els;
+    // m_counter++;
+    // std::cout << "avg milliseconds elapsed time: " << double(m_totalTime) * double(1e-6) / m_counter << std::endl;
+    // maxTime = maxTime < els ? els : maxTime;
+    // std::cout << "max milliseconds elapsed time: " << double(maxTime) * double(1e-6) << std::endl;
 
     delete packet;
 }
