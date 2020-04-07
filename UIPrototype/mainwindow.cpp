@@ -1,12 +1,14 @@
 #include "mainwindow.h"
 
-void MainWindow::connectToServer(QString server) {
+void MainWindow::connectToServer(QString server) 
+{
     socket->abort();
     socket->connectToServer(server);
     socket->open(QIODevice::ReadWrite);
 }
 
-void MainWindow::disconnectFromServer() {
+void MainWindow::disconnectFromServer() 
+{
     socket->disconnectFromServer();
 }
 
@@ -17,17 +19,48 @@ void MainWindow::readFromSocket()
     updateDisplay("message was: " + strData);
 }
 
-void MainWindow::writeToSocket(QString message) {
+void MainWindow::writeToSocket(QString message) 
+{
     // formats message properly to send message length
     message = QString::number(message.length()) + "_" + message;
 
     QByteArray messageData;
     QDataStream dataWriter(&messageData, QIODevice::WriteOnly);
     dataWriter << message.toStdString().c_str();
-    std::cout << "writing to socket" << std::endl;
-    // send data
-    std::cout << "num bytes written: " << socket->write(messageData) << std::endl;
-    std::cout << "bytes were written? " << (socket->waitForBytesWritten() == 0 ? "no" : "yes") << std::endl;
+    
+    socket->write(messageData);
+    socket->waitForBytesWritten();
+}
+
+QElapsedTimer keyTimer;
+bool first_time_pressed = true;
+
+void MainWindow::keyPressEvent(QKeyEvent *e) 
+{
+    // keys found here: https://doc.qt.io/qt-5/qt.html#Key-enum
+    if (e->key() == Qt::Key_A) {
+        key_was_pressed = 1;
+    }
+}
+
+void MainWindow::keyReleaseEvent(QKeyEvent *e) 
+{
+    // keys found here: https://doc.qt.io/qt-5/qt.html#Key-enum
+    if (e->key() == Qt::Key_A) {
+        if (first_time_pressed) {
+            keyTimer.start();        
+        }
+        key_was_pressed = 0;
+    }
+}
+
+void MainWindow::slot_load_preset_handler(QAction *action) {
+    for (int i = 0; i < m_presets.size(); i++) {
+        if (QString::compare(action->text(), m_presets[i]) {
+            m_preset_selected = i;
+            return;
+        }
+    }
 }
 
 
@@ -35,15 +68,20 @@ MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow), timer(new QTimer(this)),
     m_voice_colors { "rgb(255,0,0)", "rgb(0,0,255)", "rgb(0,255,0)", "rgb(255,255,0)" },
-    socket(new QLocalSocket(this))
+    socket(new QLocalSocket(this)), m_preset_selected(-1)
 {
     ui->setupUi(this);
+    setFocusPolicy(Qt::StrongFocus);
 
     //----- socket setup -----//
     connectToServer("/tmp/socket_for_synth_eng");
 
     connect(socket, &QLocalSocket::readyRead, this, &MainWindow::readFromSocket);
     //------------------------//
+
+    key_was_pressed = false;
+
+    // connect(ui->load_preset_menu, SIGNAL(triggered(QACtion*)), this, SLOT(slot_load_preset_handler(QAction*)));
 
     m_voice_display_LEDs = { ui->display_V1,
                              ui->display_V2,
@@ -249,9 +287,8 @@ MainWindow::MainWindow(QWidget *parent) :
 // qint64 maxTime = 0;
 
 
-void MainWindow::slot_handle_timer() {    
+void MainWindow::slot_handle_timer() {
     JSON *packet = getStateOfBoard();
-
 
     QString data;
     switch(section_clicked) {
@@ -312,7 +349,7 @@ void MainWindow::slot_handle_button_press() {
     // update the button state
     for (int i = 0; i < m_buttons.size(); i++) {
         if (m_buttons[i] == button_sender) {
-            m_button_states[i] = 15;
+            m_button_states[i] = 1;
         }
     }
 }
@@ -407,6 +444,10 @@ JSON* MainWindow::getStateOfBoard() {
 
     (*packet)["vol"]["button"] = { { "vol", vol_val } };
     (*packet)["vol"]["knob"] =   { { "vol", m_vol_knobs[0]->value() } };
+
+    (*packet)["key_pressed"] = { { "space", key_was_pressed } };
+    (*packet)["presets"] = { { "selected_preset", m_preset_selected } };
+
     return packet;
 }
 

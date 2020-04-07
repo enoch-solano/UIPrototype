@@ -7,6 +7,7 @@
 #include <iostream>
 #include <QTimer>
 #include <QElapsedTimer>
+#include <QKeyEvent>
 
 //-- client-side includes --//
 #include <QDataStream>
@@ -36,9 +37,11 @@ private:
 
     QTimer *timer;
 
+    std::vector<QString> m_presets;
+    int m_preset_selected;
+
     std::vector<QString> m_voice_colors;
     std::vector<QLabel*> m_voice_display_LEDs;
-
 
     std::vector<QDial*> m_voice_level_knobs;
     std::vector<QDial*> m_voice_fine_knobs;
@@ -118,6 +121,15 @@ public slots:
     void slot_filter_pressed() { section_clicked = 6; }
     void slot_fm_pressed()     { section_clicked = 7; }
     void slot_vol_pressed()    { section_clicked = 8; }
+
+    void slot_load_preset_handler(QAction *action);
+
+private:
+    int key_was_pressed;
+
+protected:
+    void keyPressEvent(QKeyEvent *event);
+    void keyReleaseEvent(QKeyEvent *event);
 };
 
 #endif // MAINWINDOW_H
