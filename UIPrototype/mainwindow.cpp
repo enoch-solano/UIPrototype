@@ -4,6 +4,7 @@ void MainWindow::connectToServer(QString server)
 {
     socket->abort();
     socket->connectToServer(server);
+    socket->waitForConnected(60 * 1000);
     socket->open(QIODevice::ReadWrite);
 }
 
@@ -32,7 +33,7 @@ void MainWindow::readFromSocket()
         return;
     }
 
-//    updateDisplay("message was: " + strData);
+    updateDisplay("message was: " + strData);
 }
 
 void MainWindow::writeToSocket(QString message) 
@@ -87,35 +88,15 @@ MainWindow::MainWindow(QWidget *parent) :
     socket(new QLocalSocket(this)), m_preset_selected(-1)
 {
     ui->setupUi(this);
-//    setFocusPolicy(Qt::StrongFocus);
-
-//    JSON packet;
-//    packet["presets"].push_back("date");
-//    packet["presets"].push_back("date1");
-//    packet["presets"].push_back("date2");
-//    QString strData = QString::fromStdString("initial_msg_" + packet.dump());
-//    std::cout << strData.toStdString() << std::endl;
-
-//    if (strData.startsWith("initial_msg_")) {
-//        std::cout << "hello" << std::endl;
-//        std::string msg = strData.toStdString();
-//        msg = msg.substr(std::string("initial_msg_").length());
-
-//        JSON init_packet = JSON::parse(msg);
-//        for (std::string preset : init_packet["presets"]) {
-//            std::cout << preset << std::endl;
-//        }
-//    }
 
     //----- socket setup -----//
-//    connectToServer("/tmp/socket_for_synth_eng");
-
-//    connect(socket, &QLocalSocket::readyRead, this, &MainWindow::readFromSocket);
+    connectToServer("/tmp/socket_for_synth_eng");
+    connect(socket, &QLocalSocket::readyRead, this, &MainWindow::readFromSocket);
     //------------------------//
 
     key_was_pressed = false;
 
-     connect(ui->load_preset_menu, SIGNAL(triggered(QACtion*)), this, SLOT(slot_load_preset_handler(QAction*)));
+    connect(ui->load_preset_menu, &QMenu::triggered, this, &MainWindow::slot_load_preset_handler);
 
     m_voice_display_LEDs = { ui->display_V1,
                              ui->display_V2,
@@ -318,46 +299,9 @@ MainWindow::MainWindow(QWidget *parent) :
 
 void MainWindow::slot_handle_timer() {
     JSON *packet = getStateOfBoard();
-
-//    QString data;
-//    switch(section_clicked) {
-//    case 0:
-//        data = QString::fromStdString((*packet)["voices"]["voice0"].dump(4));
-//        break;
-//    case 1:
-//        data = QString::fromStdString((*packet)["voices"]["voice1"].dump(4));
-//        break;
-//    case 2:
-//        data = QString::fromStdString((*packet)["voices"]["voice2"].dump(4));
-//        break;
-//    case 3:
-//        data = QString::fromStdString((*packet)["voices"]["voice3"].dump(4));
-//        break;
-//    case 4:
-//        data = QString::fromStdString((*packet)["adsr"].dump(4));
-//        break;
-//    case 5:
-//        data = QString::fromStdString((*packet)["lfo"].dump(4));
-//        break;
-//    case 6:
-//        data = QString::fromStdString((*packet)["filter"].dump(4));
-//        break;
-//    case 7:
-//        data = QString::fromStdString((*packet)["fm"].dump(4));
-//        break;
-//    case 8:
-//        data = QString::fromStdString((*packet)["vol"].dump(4));
-//        break;
-//    default:
-//        data = QString();
-//    }
-
-    // display what is touched
-    // updateDisplay(data);
-
     writeToSocket(QString::fromStdString(packet->dump()));
-
     delete packet;
+
     m_preset_selected = -1;
 }
 
@@ -465,7 +409,7 @@ JSON* MainWindow::getStateOfBoard() {
     (*packet)["vol"]["knob"] =   { { "vol", m_vol_knobs[0]->value() } };
 
     (*packet)["key_pressed"] = { { "space", key_was_pressed } };
-    (*packet)["presets"] = { { "selected_preset", m_preset_selected } };
+    (*packet)["selected_preset"] = m_preset_selected;
 
     return packet;
 }
