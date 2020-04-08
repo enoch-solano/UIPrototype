@@ -81,6 +81,33 @@ void MainWindow::slot_load_preset_handler(QAction *action) {
 }
 
 
+void MainWindow::slot_handle_key_press() {
+    // retrieve the button you have clicked
+    QPushButton* button_sender = qobject_cast<QPushButton*>(sender());
+
+    // update the key state
+    for (int i = 0; i < m_keys.size(); i++) {
+        if (m_keys[i] == button_sender) {
+            m_key_pressed[i] = 1;
+            updateDisplay("pressing key");
+        }
+    }
+}
+
+void MainWindow::slot_handle_key_release() {
+    // retrieve the button you have clicked
+    QPushButton* button_sender = qobject_cast<QPushButton*>(sender());
+
+    // update the key state
+    for (int i = 0; i < m_keys.size(); i++) {
+        if (m_keys[i] == button_sender) {
+            m_key_released[i] = 0;
+            updateDisplay("released key");
+        }
+    }
+}
+
+
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow), timer(new QTimer(this)),
@@ -88,6 +115,20 @@ MainWindow::MainWindow(QWidget *parent) :
     socket(new QLocalSocket(this)), m_preset_selected(-1)
 {
     ui->setupUi(this);
+
+    m_keys.push_back(ui->key_1);
+    m_keys.push_back(ui->key_2);
+    m_keys.push_back(ui->key_3);
+
+    for (int i = 0; i < m_keys.size(); i++) {
+        m_key_pressed.push_back(0);
+        m_key_released.push_back(0);
+    }
+
+    for (QPushButton *key : m_keys) {
+        connect(key, &QPushButton::pressed, this, &MainWindow::slot_handle_key_press);
+        connect(key, &QPushButton::released, this, &MainWindow::slot_handle_key_release);
+    }
 
     //----- socket setup -----//
     connectToServer("/tmp/socket_for_synth_eng");
@@ -408,8 +449,20 @@ JSON* MainWindow::getStateOfBoard() {
     (*packet)["vol"]["button"] = { { "vol", vol_val } };
     (*packet)["vol"]["knob"] =   { { "vol", m_vol_knobs[0]->value() } };
 
-    (*packet)["key_pressed"] = { { "space", key_was_pressed } };
     (*packet)["selected_preset"] = m_preset_selected;
+
+    (*packet)["key_pressed"] = { { "key0", m_key_pressed[0] },
+                                 { "key1", m_key_pressed[1] },
+                                 { "key2", m_key_pressed[2] } };
+
+    (*packet)["key_released"] = { { "key0", m_key_released[0] },
+                                  { "key1", m_key_released[1] },
+                                  { "key2", m_key_released[2] } };
+
+    for (int i = 0; i < m_keys.size(); i++) {
+        m_key_pressed[i]  = 0;
+        m_key_released[i] = 0;
+    }
 
     return packet;
 }

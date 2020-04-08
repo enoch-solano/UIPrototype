@@ -43,6 +43,10 @@ private:
     std::vector<QString> m_voice_colors;
     std::vector<QLabel*> m_voice_display_LEDs;
 
+    std::vector<QPushButton*> m_keys;
+    std::vector<int> m_key_pressed;
+    std::vector<int> m_key_released;
+
     std::vector<QDial*> m_voice_level_knobs;
     std::vector<QDial*> m_voice_fine_knobs;
     std::vector<QDial*> m_adsr_knobs;
@@ -123,6 +127,9 @@ public slots:
     void slot_vol_pressed()    { section_clicked = 8; }
 
     void slot_load_preset_handler(QAction *action);
+
+    void slot_handle_key_press();
+    void slot_handle_key_release();
 
 private:
     int key_was_pressed;
