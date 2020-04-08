@@ -950,6 +950,12 @@
      <height>24</height>
     </rect>
    </property>
+   <widget class="QMenu" name="load_preset_menu">
+    <property name="title">
+     <string>Load Preset</string>
+    </property>
+   </widget>
+   <addaction name="load_preset_menu"/>
   </widget>
   <widget class="QToolBar" name="mainToolBar">
    <attribute name="toolBarArea">

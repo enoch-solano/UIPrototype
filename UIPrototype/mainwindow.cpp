@@ -16,7 +16,23 @@ void MainWindow::readFromSocket()
 {
     QByteArray data = socket->readAll();
     QString strData = QString::fromStdString(data.toStdString());
-    updateDisplay("message was: " + strData);
+
+    if (strData.startsWith("initial_msg_")) {
+        std::string msg = strData.toStdString();
+        msg = msg.substr(std::string("initial_msg_").length());
+
+        JSON init_packet = JSON::parse(msg);
+
+        for (std::string preset : init_packet["presets"]) {
+            QString qstr_preset = QString::fromStdString(preset);
+            ui->load_preset_menu->addAction(qstr_preset);
+            m_presets.push_back(qstr_preset);
+        }
+
+        return;
+    }
+
+//    updateDisplay("message was: " + strData);
 }
 
 void MainWindow::writeToSocket(QString message) 
@@ -56,7 +72,7 @@ void MainWindow::keyReleaseEvent(QKeyEvent *e)
 
 void MainWindow::slot_load_preset_handler(QAction *action) {
     for (int i = 0; i < m_presets.size(); i++) {
-        if (QString::compare(action->text(), m_presets[i]) {
+        if (QString::compare(action->text(), m_presets[i]) == 0) {
             m_preset_selected = i;
             return;
         }
@@ -71,17 +87,35 @@ MainWindow::MainWindow(QWidget *parent) :
     socket(new QLocalSocket(this)), m_preset_selected(-1)
 {
     ui->setupUi(this);
-    setFocusPolicy(Qt::StrongFocus);
+//    setFocusPolicy(Qt::StrongFocus);
+
+//    JSON packet;
+//    packet["presets"].push_back("date");
+//    packet["presets"].push_back("date1");
+//    packet["presets"].push_back("date2");
+//    QString strData = QString::fromStdString("initial_msg_" + packet.dump());
+//    std::cout << strData.toStdString() << std::endl;
+
+//    if (strData.startsWith("initial_msg_")) {
+//        std::cout << "hello" << std::endl;
+//        std::string msg = strData.toStdString();
+//        msg = msg.substr(std::string("initial_msg_").length());
+
+//        JSON init_packet = JSON::parse(msg);
+//        for (std::string preset : init_packet["presets"]) {
+//            std::cout << preset << std::endl;
+//        }
+//    }
 
     //----- socket setup -----//
-    connectToServer("/tmp/socket_for_synth_eng");
+//    connectToServer("/tmp/socket_for_synth_eng");
 
-    connect(socket, &QLocalSocket::readyRead, this, &MainWindow::readFromSocket);
+//    connect(socket, &QLocalSocket::readyRead, this, &MainWindow::readFromSocket);
     //------------------------//
 
     key_was_pressed = false;
 
-    // connect(ui->load_preset_menu, SIGNAL(triggered(QACtion*)), this, SLOT(slot_load_preset_handler(QAction*)));
+     connect(ui->load_preset_menu, SIGNAL(triggered(QACtion*)), this, SLOT(slot_load_preset_handler(QAction*)));
 
     m_voice_display_LEDs = { ui->display_V1,
                              ui->display_V2,
@@ -282,64 +316,49 @@ MainWindow::MainWindow(QWidget *parent) :
     timer->start(50);
 }
 
-// qint64 m_totalTime = 0;
-// qint64 m_counter = 0;
-// qint64 maxTime = 0;
-
-
 void MainWindow::slot_handle_timer() {
     JSON *packet = getStateOfBoard();
 
-    QString data;
-    switch(section_clicked) {
-    case 0:
-        data = QString::fromStdString((*packet)["voices"]["voice0"].dump(4));
-        break;
-    case 1:
-        data = QString::fromStdString((*packet)["voices"]["voice1"].dump(4));
-        break;
-    case 2:
-        data = QString::fromStdString((*packet)["voices"]["voice2"].dump(4));
-        break;
-    case 3:
-        data = QString::fromStdString((*packet)["voices"]["voice3"].dump(4));
-        break;
-    case 4:
-        data = QString::fromStdString((*packet)["adsr"].dump(4));
-        break;
-    case 5:
-        data = QString::fromStdString((*packet)["lfo"].dump(4));
-        break;
-    case 6:
-        data = QString::fromStdString((*packet)["filter"].dump(4));
-        break;
-    case 7:
-        data = QString::fromStdString((*packet)["fm"].dump(4));
-        break;
-    case 8:
-        data = QString::fromStdString((*packet)["vol"].dump(4));
-        break;
-    default:
-        data = QString();
-    }
+//    QString data;
+//    switch(section_clicked) {
+//    case 0:
+//        data = QString::fromStdString((*packet)["voices"]["voice0"].dump(4));
+//        break;
+//    case 1:
+//        data = QString::fromStdString((*packet)["voices"]["voice1"].dump(4));
+//        break;
+//    case 2:
+//        data = QString::fromStdString((*packet)["voices"]["voice2"].dump(4));
+//        break;
+//    case 3:
+//        data = QString::fromStdString((*packet)["voices"]["voice3"].dump(4));
+//        break;
+//    case 4:
+//        data = QString::fromStdString((*packet)["adsr"].dump(4));
+//        break;
+//    case 5:
+//        data = QString::fromStdString((*packet)["lfo"].dump(4));
+//        break;
+//    case 6:
+//        data = QString::fromStdString((*packet)["filter"].dump(4));
+//        break;
+//    case 7:
+//        data = QString::fromStdString((*packet)["fm"].dump(4));
+//        break;
+//    case 8:
+//        data = QString::fromStdString((*packet)["vol"].dump(4));
+//        break;
+//    default:
+//        data = QString();
+//    }
 
     // display what is touched
     // updateDisplay(data);
 
-    // QElapsedTimer timer;
-    // timer.start();
     writeToSocket(QString::fromStdString(packet->dump()));
-    // qint64 els = timer.nsecsElapsed();
-    // std::cout << "nano seconds elapsed time: " << els << std::endl;
-    // std::cout << "milliseconds elapsed time: " << float(els) * float(1e-6) << std::endl;
-
-    // m_totalTime += els;
-    // m_counter++;
-    // std::cout << "avg milliseconds elapsed time: " << double(m_totalTime) * double(1e-6) / m_counter << std::endl;
-    // maxTime = maxTime < els ? els : maxTime;
-    // std::cout << "max milliseconds elapsed time: " << double(maxTime) * double(1e-6) << std::endl;
 
     delete packet;
+    m_preset_selected = -1;
 }
 
 void MainWindow::slot_handle_button_press() {
