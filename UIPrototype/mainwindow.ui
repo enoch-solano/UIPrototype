@@ -284,7 +284,7 @@
         </rect>
        </property>
        <property name="title">
-        <string>Level</string>
+        <string>Master</string>
        </property>
        <layout class="QGridLayout" name="gridLayout_12">
         <item row="0" column="0">
@@ -326,11 +326,6 @@
         </item>
        </layout>
       </widget>
-      <zorder>LFO</zorder>
-      <zorder>filter</zorder>
-      <zorder>FM</zorder>
-      <zorder>volume</zorder>
-      <zorder>middleBox</zorder>
      </widget>
     </item>
     <item row="0" column="0">
@@ -837,7 +832,7 @@
        <item row="1" column="0">
         <widget class="QGroupBox" name="keyBox">
          <property name="title">
-          <string>GroupBox</string>
+          <string>Keyboard</string>
          </property>
          <layout class="QGridLayout" name="gridLayout_14">
           <item row="0" column="0">
