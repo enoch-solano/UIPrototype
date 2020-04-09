@@ -49,9 +49,6 @@ void MainWindow::writeToSocket(QString message)
     socket->waitForBytesWritten();
 }
 
-QElapsedTimer keyTimer;
-bool first_time_pressed = true;
-
 void MainWindow::keyPressEvent(QKeyEvent *e) 
 {
     // keys found here: https://doc.qt.io/qt-5/qt.html#Key-enum
@@ -64,9 +61,6 @@ void MainWindow::keyReleaseEvent(QKeyEvent *e)
 {
     // keys found here: https://doc.qt.io/qt-5/qt.html#Key-enum
     if (e->key() == Qt::Key_A) {
-        if (first_time_pressed) {
-            keyTimer.start();        
-        }
         key_was_pressed = 0;
     }
 }
