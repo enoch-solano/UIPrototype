@@ -41,3 +41,7 @@ HEADERS += controlsfilter.h \
 
 FORMS += mainwindow.ui
 
+RESOURCES += \
+    breeze.qrc
+
+

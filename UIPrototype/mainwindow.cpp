@@ -243,7 +243,7 @@ MainWindow::MainWindow(QWidget *parent) :
         knob->setMinimumWidth(knob_size);
         
         knob->setMinimum(min_knob_val);
-        knob->setMinimum(max_knob_val);
+        knob->setMaximum(max_knob_val);
     }
 
 
