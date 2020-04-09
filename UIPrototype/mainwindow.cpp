@@ -80,7 +80,6 @@ void MainWindow::slot_load_preset_handler(QAction *action) {
     }
 }
 
-
 void MainWindow::slot_handle_key_press() {
     // retrieve the button you have clicked
     QPushButton* button_sender = qobject_cast<QPushButton*>(sender());
@@ -89,7 +88,6 @@ void MainWindow::slot_handle_key_press() {
     for (int i = 0; i < m_keys.size(); i++) {
         if (m_keys[i] == button_sender) {
             m_key_pressed[i] = 1;
-            updateDisplay("pressing key");
         }
     }
 }
@@ -101,8 +99,7 @@ void MainWindow::slot_handle_key_release() {
     // update the key state
     for (int i = 0; i < m_keys.size(); i++) {
         if (m_keys[i] == button_sender) {
-            m_key_released[i] = 0;
-            updateDisplay("released key");
+            m_key_released[i] = 1;
         }
     }
 }
@@ -228,34 +225,25 @@ MainWindow::MainWindow(QWidget *parent) :
                                                "; color : " + m_voice_colors[i] + "; }");
     }
 
-    int num_knobs = 4;
-    int min_level = 0;
-    int max_level = 99;
-
-    for (int i = 0; i < num_knobs; i++) {
-        m_voice_level_knobs[i]->setMinimum(min_level);
-        m_voice_level_knobs[i]->setMaximum(max_level);
-    }
-
-    int min_fine = 0;
-    int max_fine = 99;
-
-    for (int i = 0; i < num_knobs; i++) {
-        m_voice_fine_knobs[i]->setMinimum(min_fine);
-        m_voice_fine_knobs[i]->setMaximum(max_fine);
-    }
-
     ui->infoLabel->setStyleSheet("QLabel { color : " + m_voice_colors[VOICE_1] + "; }");
 
     for (QPushButton* button : m_buttons) {
         connect(button, SIGNAL(pressed()), this, SLOT(slot_handle_button_press()));
     }
 
+
+    int knob_size = 120;
+    int min_knob_val = 0;
+    int max_knob_val = 99;
+
     for (QDial* knob : m_knobs) {
         knob->setWrapping(true);
-        int size = 120;
-        knob->setMinimumHeight(size);
-        knob->setMinimumWidth(size);
+        
+        knob->setMinimumHeight(knob_size);
+        knob->setMinimumWidth(knob_size);
+        
+        knob->setMinimum(min_knob_val);
+        knob->setMinimum(max_knob_val);
     }
 
 
@@ -400,12 +388,12 @@ JSON* MainWindow::getStateOfBoard() {
 
     (*packet)["adsr"]["button"] = { { "attack",  adsr_vals[0] },
                                     { "decay",   adsr_vals[1] },
-                                    { "release", adsr_vals[2] },
-                                    { "sustain", adsr_vals[3] } };
+                                    { "sustain", adsr_vals[2] },
+                                    { "release", adsr_vals[3] } };
     (*packet)["adsr"]["knob"] = { { "attack",  m_adsr_knobs[0]->value() },
                                   { "decay",   m_adsr_knobs[1]->value() },
-                                  { "release", m_adsr_knobs[2]->value() },
-                                  { "sustain", m_adsr_knobs[3]->value() } };
+                                  { "sustain", m_adsr_knobs[2]->value() },
+                                  { "release", m_adsr_knobs[3]->value() } };
 
     std::vector<int> lfo_vals;
     for (int i = 0; i < m_lfo_buttons.size(); i++) {
