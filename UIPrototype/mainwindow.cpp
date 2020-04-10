@@ -79,8 +79,8 @@ void MainWindow::slot_handle_key_press() {
     QPushButton* button_sender = qobject_cast<QPushButton*>(sender());
 
     // update the key state
-    for (int i = 0; i < m_keys.size(); i++) {
-        if (m_keys[i] == button_sender) {
+    for (int i = 0; i < m_key_buttons.size(); i++) {
+        if (m_key_buttons[i] == button_sender) {
             m_key_pressed[i] = 1;
         }
     }
@@ -91,8 +91,8 @@ void MainWindow::slot_handle_key_release() {
     QPushButton* button_sender = qobject_cast<QPushButton*>(sender());
 
     // update the key state
-    for (int i = 0; i < m_keys.size(); i++) {
-        if (m_keys[i] == button_sender) {
+    for (int i = 0; i < m_key_buttons.size(); i++) {
+        if (m_key_buttons[i] == button_sender) {
             m_key_released[i] = 1;
         }
     }
@@ -109,7 +109,6 @@ void MainWindow::slot_voice_select() {
         int g = (int) (brightness * m_voice_colors_vals[i*3 + 2]);
 
         QString color = QString("rgb(%1,%2,%3)").arg(r).arg(g).arg(b);
-        std::cout << "setting color: " << color.toStdString() << std::endl;
 
         m_voice_display_LEDs[i]->setStyleSheet("QLabel { background-color : " + color +
                                                "; color : " + color + "; }");
@@ -121,20 +120,20 @@ MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow), timer(new QTimer(this)),
     m_voice_colors { "rgb(255,0,0)", "rgb(0,0,255)", "rgb(0,255,0)", "rgb(255,255,0)" },
-    socket(new QLocalSocket(this)), m_preset_selected(-1)
+    socket(new QLocalSocket(this)), m_preset_selected(-1), m_neonBlue("rgb(126,249,255)"), m_grey("rgb(171,171,171)")
 {
     ui->setupUi(this);
 
-    m_keys.push_back(ui->key_1);
-    m_keys.push_back(ui->key_2);
-    m_keys.push_back(ui->key_3);
+    m_key_buttons.push_back(ui->key_1);
+    m_key_buttons.push_back(ui->key_2);
+    m_key_buttons.push_back(ui->key_3);
 
-    for (int i = 0; i < m_keys.size(); i++) {
+    for (int i = 0; i < m_key_buttons.size(); i++) {
         m_key_pressed.push_back(0);
         m_key_released.push_back(0);
     }
 
-    for (QPushButton *key : m_keys) {
+    for (QPushButton *key : m_key_buttons) {
         connect(key, &QPushButton::pressed, this, &MainWindow::slot_handle_key_press);
         connect(key, &QPushButton::released, this, &MainWindow::slot_handle_key_release);
     }
@@ -261,8 +260,6 @@ MainWindow::MainWindow(QWidget *parent) :
         int g = (int) (brightness * m_voice_colors_vals[i*3 + 2]);
 
         QString color = QString("rgb(%1,%2,%3)").arg(r).arg(g).arg(b);
-        std::cout << "setting color: " << color.toStdString() << std::endl;
-
         m_voice_display_LEDs[i]->setStyleSheet("QLabel { background-color : " + color +
                                                "; color : " + color + "; }");
     }
@@ -366,6 +363,114 @@ MainWindow::MainWindow(QWidget *parent) :
 
     connect(timer, &QTimer::timeout, this, QOverload<>::of(&MainWindow::slot_handle_timer));
     timer->start(50);
+
+    // handle global control presses
+    for (QPushButton *button : m_buttons) {
+        connect(button, &QPushButton::clicked, this, &MainWindow::slot_pressed);
+    }
+
+    for (QPushButton *button : m_key_buttons) {
+        connect(button, &QPushButton::clicked, this, &MainWindow::slot_pressed);
+    }
+
+    for (QDial *knob : m_knobs) {
+        connect(knob, &QDial::sliderPressed, this, &MainWindow::slot_pressed);
+    }
+
+    QString color = m_grey;
+    ui->LFOLabel->setStyleSheet("QLabel { color : " + color + "; }");
+    ui->filterLabel->setStyleSheet("QLabel { color : " + color + "; }");
+    ui->FMLabel->setStyleSheet("QLabel { color : " + color + "; }");
+    ui->volumeLabel->setStyleSheet("QLabel { color : " + color + "; }");
+}
+
+void MainWindow::slot_pressed() {
+    // retrieve the button you have clicked
+    QPushButton* button_sender = qobject_cast<QPushButton*>(sender());
+    QDial* dial_sender = qobject_cast<QDial*>(sender());
+
+    if (button_sender) {
+        bool contained = false;
+        for (QPushButton *button : m_lfo_buttons) {
+            if (button == button_sender) {
+                contained = true;
+            }
+        }
+
+        QString color = contained ? m_neonBlue : m_grey;
+        ui->LFOLabel->setStyleSheet("QLabel { color : " + color + "; }");
+        contained = false;
+
+        for (QPushButton *button : m_filter_buttons) {
+            if (button == button_sender) {
+                contained = true;
+            }
+        }
+
+        color = contained ? m_neonBlue : m_grey;
+        ui->filterLabel->setStyleSheet("QLabel { color : " + color + "; }");
+        contained = false;
+
+        for (QPushButton *button : m_fm_buttons) {
+            if (button == button_sender) {
+                contained = true;
+            }
+        }
+
+        color = contained ? m_neonBlue : m_grey;
+        ui->FMLabel->setStyleSheet("QLabel { color : " + color + "; }");
+        contained = false;
+
+        for (QPushButton *button : m_vol_buttons) {
+            if (button == button_sender) {
+                contained = true;
+            }
+        }
+
+        color = contained ? m_neonBlue : m_grey;
+        ui->volumeLabel->setStyleSheet("QLabel { color : " + color + "; }");
+    } else if (dial_sender) {
+        bool contained = false;
+        for (QDial *knob : m_lfo_knobs) {
+            if (knob == dial_sender) {
+                contained = true;
+            }
+        }
+
+        QString color = contained ? m_neonBlue : m_grey;
+        ui->LFOLabel->setStyleSheet("QLabel { color : " + color + "; }");
+        contained = false;
+
+        for (QDial *knob : m_filter_knobs) {
+            if (knob == dial_sender) {
+                contained = true;
+            }
+        }
+
+        color = contained ? m_neonBlue : m_grey;
+        ui->filterLabel->setStyleSheet("QLabel { color : " + color + "; }");
+        contained = false;
+
+        for (QDial *knob : m_fm_knobs) {
+            if (knob == dial_sender) {
+                contained = true;
+            }
+        }
+
+        color = contained ? m_neonBlue : m_grey;
+        ui->FMLabel->setStyleSheet("QLabel { color : " + color + "; }");
+        contained = false;
+
+        for (QDial *knob : m_vol_knobs) {
+            if (knob == dial_sender) {
+                contained = true;
+            }
+        }
+
+        color = contained ? m_neonBlue : m_grey;
+        ui->volumeLabel->setStyleSheet("QLabel { color : " + color + "; }");
+    }
+
 }
 
 void MainWindow::slot_handle_timer() {
@@ -489,7 +594,7 @@ JSON* MainWindow::getStateOfBoard() {
                                   { "key1", m_key_released[1] },
                                   { "key2", m_key_released[2] } };
 
-    for (int i = 0; i < m_keys.size(); i++) {
+    for (int i = 0; i < m_key_buttons.size(); i++) {
         m_key_pressed[i]  = 0;
         m_key_released[i] = 0;
     }

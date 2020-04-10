@@ -8,6 +8,7 @@
 #include <QTimer>
 #include <QElapsedTimer>
 #include <QKeyEvent>
+#include <QSet>
 
 //-- client-side includes --//
 #include <QDataStream>
@@ -40,11 +41,13 @@ private:
     std::vector<QString> m_presets;
     int m_preset_selected;
 
+    QString m_neonBlue, m_grey;
+
     std::vector<QString> m_voice_colors;
     std::vector<int> m_voice_colors_vals;
     std::vector<QLabel*> m_voice_display_LEDs;
 
-    std::vector<QPushButton*> m_keys;
+    std::vector<QPushButton*> m_key_buttons;
     std::vector<int> m_key_pressed;
     std::vector<int> m_key_released;
 
@@ -115,6 +118,8 @@ public slots:
     void slot_handle_button_press();
     void slot_handle_knob_turn(int value);
     void slot_handle_timer();
+
+    void slot_pressed();
 
     void slot_v0_pressed() { section_clicked = 0; }
     void slot_v1_pressed() { section_clicked = 1; }
