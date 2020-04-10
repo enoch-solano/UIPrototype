@@ -45,8 +45,8 @@ void MainWindow::writeToSocket(QString message)
     QDataStream dataWriter(&messageData, QIODevice::WriteOnly);
     dataWriter << message.toStdString().c_str();
     
-    socket->write(messageData);
-    socket->waitForBytesWritten();
+//    socket->write(messageData);
+//    socket->waitForBytesWritten();
 }
 
 void MainWindow::keyPressEvent(QKeyEvent *e) 
@@ -95,6 +95,24 @@ void MainWindow::slot_handle_key_release() {
         if (m_keys[i] == button_sender) {
             m_key_released[i] = 1;
         }
+    }
+}
+
+void MainWindow::slot_voice_select() {
+    // retrieve the button you have clicked
+    QPushButton* button_sender = qobject_cast<QPushButton*>(sender());
+
+    for (int i = 0; i < m_voice_sel_buttons.size(); i++) {
+        float brightness = m_voice_sel_buttons[i] == button_sender ? 1.f : 0.3f;
+        int r = (int) (brightness * m_voice_colors_vals[i*3]);
+        int b = (int) (brightness * m_voice_colors_vals[i*3 + 1]);
+        int g = (int) (brightness * m_voice_colors_vals[i*3 + 2]);
+
+        QString color = QString("rgb(%1,%2,%3)").arg(r).arg(g).arg(b);
+        std::cout << "setting color: " << color.toStdString() << std::endl;
+
+        m_voice_display_LEDs[i]->setStyleSheet("QLabel { background-color : " + color +
+                                               "; color : " + color + "; }");
     }
 }
 
@@ -214,9 +232,39 @@ MainWindow::MainWindow(QWidget *parent) :
     m_button_states = std::vector<int>(m_buttons.size());
     //---------------------------------------------------------------//
 
-    for (int i = 0; i < m_voice_display_LEDs.size(); i++) {
-        m_voice_display_LEDs[i]->setStyleSheet("QLabel { background-color : " + m_voice_colors[i] +
-                                               "; color : " + m_voice_colors[i] + "; }");
+
+    // voice 1
+    m_voice_colors_vals.push_back(255);
+    m_voice_colors_vals.push_back(0);
+    m_voice_colors_vals.push_back(0);
+    // voice 2
+    m_voice_colors_vals.push_back(0);
+    m_voice_colors_vals.push_back(0);
+    m_voice_colors_vals.push_back(255);
+    // voice 3
+    m_voice_colors_vals.push_back(0);
+    m_voice_colors_vals.push_back(255);
+    m_voice_colors_vals.push_back(0);
+    // voice 4
+    m_voice_colors_vals.push_back(255);
+    m_voice_colors_vals.push_back(255);
+    m_voice_colors_vals.push_back(0);
+
+    for (QPushButton *button : m_voice_sel_buttons) {
+        connect(button, &QPushButton::pressed, this, &MainWindow::slot_voice_select);
+    }
+
+    for (int i = 0; i < m_voice_sel_buttons.size(); i++) {
+        float brightness = i == 0 ? 1.f : 0.3f;
+        int r = (int) (brightness * m_voice_colors_vals[i*3]);
+        int b = (int) (brightness * m_voice_colors_vals[i*3 + 1]);
+        int g = (int) (brightness * m_voice_colors_vals[i*3 + 2]);
+
+        QString color = QString("rgb(%1,%2,%3)").arg(r).arg(g).arg(b);
+        std::cout << "setting color: " << color.toStdString() << std::endl;
+
+        m_voice_display_LEDs[i]->setStyleSheet("QLabel { background-color : " + color +
+                                               "; color : " + color + "; }");
     }
 
     ui->infoLabel->setStyleSheet("QLabel { color : " + m_voice_colors[VOICE_1] + "; }");

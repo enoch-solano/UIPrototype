@@ -41,6 +41,7 @@ private:
     int m_preset_selected;
 
     std::vector<QString> m_voice_colors;
+    std::vector<int> m_voice_colors_vals;
     std::vector<QLabel*> m_voice_display_LEDs;
 
     std::vector<QPushButton*> m_keys;
@@ -130,6 +131,8 @@ public slots:
 
     void slot_handle_key_press();
     void slot_handle_key_release();
+
+    void slot_voice_select();
 
 private:
     int key_was_pressed;
