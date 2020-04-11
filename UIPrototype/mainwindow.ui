@@ -793,11 +793,6 @@
         </item>
        </layout>
       </widget>
-      <zorder>LFO</zorder>
-      <zorder>filter</zorder>
-      <zorder>FM</zorder>
-      <zorder>volume</zorder>
-      <zorder>middleBox</zorder>
      </widget>
     </item>
     <item row="0" column="1">
@@ -821,7 +816,7 @@
              </font>
             </property>
             <property name="text">
-             <string>Going to display info here.</string>
+             <string/>
             </property>
             <property name="alignment">
              <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
